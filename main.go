@@ -131,7 +131,7 @@ func WriteIPCidrToSqLite(db *sql.DB, tablename string, data []string) error {
 
 	// insert data
 	insertSQL := fmt.Sprintf("INSERT INTO %s (ip_cidr) VALUES (?)", tablename)
-	stmt, err := db.Prepare(insertSQL)
+	stmt, err := tx.Prepare(insertSQL)
 	if err != nil {
 		return fmt.Errorf("prepare insert SQL error : %w", err)
 	}
