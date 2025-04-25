@@ -26,3 +26,5 @@ go.work.sum
 
 # build
 main
+meta-rules-dat
+ipdomain.db
