@@ -72,7 +72,7 @@ func ListFiles(dirPath string) ([]string, error) {
 	var filePaths []string
 	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			return err // 如果出现错误，直接返回
+			return err
 		}
 
 		if !info.IsDir() {
@@ -108,9 +108,9 @@ func WriteIPCidrToSqLite(db *sql.DB, tablename string, data []string) error {
 		return errors.New("database is empty")
 	}
 	if len(data) == 0 {
-		return errors.New("数据列表为空")
+		return errors.New("data is empty")
 	}
-
+	// create table
 	createTableSQL := fmt.Sprintf(`
 		CREATE TABLE IF NOT EXISTS %s (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -118,25 +118,38 @@ func WriteIPCidrToSqLite(db *sql.DB, tablename string, data []string) error {
 		);
 	`, tablename)
 	_, err := db.Exec(createTableSQL)
-
 	if err != nil {
 		return fmt.Errorf("create table error : %w", err)
 	}
+
+	// Enable Transactions
+	tx, err := db.Begin()
+	if err != nil {
+		return fmt.Errorf("enable transactions error : %w", err)
+	}
+	defer tx.Rollback()
 
 	// insert data
 	insertSQL := fmt.Sprintf("INSERT INTO %s (ip_cidr) VALUES (?)", tablename)
 	stmt, err := db.Prepare(insertSQL)
 	if err != nil {
-		return fmt.Errorf("准备插入语句失败: %w", err)
+		return fmt.Errorf("prepare insert SQL error : %w", err)
 	}
 	defer stmt.Close()
 
 	for _, value := range data {
 		_, err := stmt.Exec(value)
 		if err != nil {
-			return fmt.Errorf("插入数据失败: %w", err)
+			return fmt.Errorf("insert data error: %w", err)
 		}
 	}
+
+	// Commit transaction
+	err = tx.Commit()
+	if err != nil {
+		return fmt.Errorf("commit transaction error : %w", err)
+	}
+
 	return nil
 }
 
@@ -149,13 +162,12 @@ func GetFileName(filePath string) string {
 
 func main() {
 	start_time := time.Now()
-	fmt.Println(DomainSuffix("site.json"))
 	fmt.Println(ListFiles("meta-rules-dat/geo-lite/geoip"))
 
-	// 打开 SQLite 数据库（如果文件不存在则会自动创建）
-	db, err := sql.Open("sqlite3", "./example.db")
+	// Open DB
+	db, err := sql.Open("sqlite3", "./ipdomain.db")
 	if err != nil {
-		log.Fatalf("打开数据库失败: %v", err)
+		log.Fatalf("open db error : %v", err)
 	}
 	defer db.Close()
 
@@ -166,7 +178,7 @@ func main() {
 	}
 	for _, file := range filelists {
 		data := IpCidr(file)
-		// 写入数据到 SQLite 表
+		// write data
 		fmt.Println("\033[34mProcessing: \033[32m" + file + "\033[0m")
 		err = WriteIPCidrToSqLite(db, "geoip_"+GetFileName(file), data)
 		if err != nil {
