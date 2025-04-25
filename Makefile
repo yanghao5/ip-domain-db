@@ -11,4 +11,4 @@ run:
 	./main
 
 clean:
-	rm -rf meta-rules-dat main
+	rm -rf meta-rules-dat main ipdomain.db
