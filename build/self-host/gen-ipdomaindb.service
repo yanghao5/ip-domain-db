@@ -1,0 +1,10 @@
+[Unit]
+Description=Generate ip domain database
+
+[Service]
+ExecStartPre=/usr/bin/wget -O /tmp/gen.sh https://raw.githubusercontent.com/yanghao5/ip-domain-db/refs/heads/main/build/self-host/gen.sh
+ExecStart=/bin/bash /tmp/gen.sh
+ExecStartPost=/bin/rm -rf /tmp/gen.sh /tmp/ip-domain-db
+
+[Install]
+WantedBy=multi-user.target
