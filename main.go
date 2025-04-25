@@ -122,6 +122,21 @@ func WriteIPCidrToSqLite(db *sql.DB, tablename string, data []string) error {
 		return fmt.Errorf("create table error : %w", err)
 	}
 
+	// perf
+	// Set PRAGMA settings outside of the transaction
+	_, err = db.Exec("PRAGMA journal_mode = WAL;")
+	if err != nil {
+		return fmt.Errorf("set WAL mode error : %w", err)
+	}
+	_, err = db.Exec("PRAGMA synchronous = OFF;")
+	if err != nil {
+		return fmt.Errorf("set synchronous OFF error : %w", err)
+	}
+	_, err = db.Exec("PRAGMA temp_store = MEMORY;")
+	if err != nil {
+		return fmt.Errorf("set temp_store MEMORY error : %w", err)
+	}
+
 	// Enable Transactions
 	tx, err := db.Begin()
 	if err != nil {
@@ -136,20 +151,6 @@ func WriteIPCidrToSqLite(db *sql.DB, tablename string, data []string) error {
 		return fmt.Errorf("prepare insert SQL error : %w", err)
 	}
 	defer stmt.Close()
-
-	// perf
-	_, err = tx.Exec("PRAGMA journal_mode = WAL;")
-	if err != nil {
-		return fmt.Errorf("set WAL mode error : %w", err)
-	}
-	_, err = tx.Exec("PRAGMA synchronous = OFF;")
-	if err != nil {
-		return fmt.Errorf("set synchronous OFF error : %w", err)
-	}
-	_, err = tx.Exec("PRAGMA temp_store = MEMORY;")
-	if err != nil {
-		return fmt.Errorf("set temp_store MEMORY error : %w", err)
-	}
 
 	// insert data
 	for _, value := range data {
