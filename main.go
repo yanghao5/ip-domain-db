@@ -137,6 +137,21 @@ func WriteIPCidrToSqLite(db *sql.DB, tablename string, data []string) error {
 	}
 	defer stmt.Close()
 
+	// perf
+	_, err = tx.Exec("PRAGMA journal_mode = WAL;")
+	if err != nil {
+		return fmt.Errorf("set WAL mode error : %w", err)
+	}
+	_, err = tx.Exec("PRAGMA synchronous = OFF;")
+	if err != nil {
+		return fmt.Errorf("set synchronous OFF error : %w", err)
+	}
+	_, err = tx.Exec("PRAGMA temp_store = MEMORY;")
+	if err != nil {
+		return fmt.Errorf("set temp_store MEMORY error : %w", err)
+	}
+
+	// insert data
 	for _, value := range data {
 		_, err := stmt.Exec(value)
 		if err != nil {
