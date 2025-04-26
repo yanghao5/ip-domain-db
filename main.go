@@ -484,13 +484,13 @@ func main() {
 	defer db.Close()
 
 	// meta-rules-dat/geo/geoip
-	//ProcessIpCidr("meta-rules-dat/geo/geoip", db)
+	ProcessIpCidr("meta-rules-dat/geo/geoip", db)
 	// meta-rules-dat/geo-lite/geoip
-	//ProcessLiteIpCidr("meta-rules-dat/geo-lite/geoip", db)
+	ProcessLiteIpCidr("meta-rules-dat/geo-lite/geoip", db)
 	// meta-rules-dat/geo-lite/geosite
-	//ProcessLiteDomain("meta-rules-dat/geo-lite/geosite", db)
+	ProcessLiteDomain("meta-rules-dat/geo-lite/geosite", db)
 	// meta-rules-dat/geo-lite/geosite
-	//ProcessDomain("meta-rules-dat/geo/geosite", db)
+	ProcessDomain("meta-rules-dat/geo/geosite", db)
 	// meta-rules-dat/asn
 	ProcessAS("meta-rules-dat/asn", db)
 
